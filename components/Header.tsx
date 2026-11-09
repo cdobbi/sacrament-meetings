@@ -17,7 +17,7 @@ export default async function Header({ wardName }: HeaderProps) {
     });
 
     return (
-        <header className="bg-surface px-6 py-4">
+        <header className="bg-surface px-6 py-4 print:hidden">
             <div className="mx-auto flex max-w-5xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-2xl font-bold text-accent">
                     {wardName}

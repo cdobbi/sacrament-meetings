@@ -29,6 +29,10 @@ async function MeetingsList() {
 
     const meetings: SacramentMeeting[] = await response.json();
 
+    if (meetings.length === 0) {
+        return <p>No meetings are available.</p>;
+    }
+
     return (
         <div className="grid gap-6 md:grid-cols-2">
             {meetings.map((meeting) => (
