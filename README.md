@@ -31,6 +31,24 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 
 ## Deploy on Vercel
 
+The meeting pages fetch this application's API on the server. Set the
+server-side environment variable `API_BASE_URL` to the origin of the deployed
+site (for example, `https://your-site.example.com`), then redeploy. Do not include
+`/api/meetings` in this value. The deployment must allow server-side requests to
+its own API endpoints.
+
+Local development defaults to `http://localhost:3000`. To use another port or
+origin, set `API_BASE_URL` in a root `.env.local` file and restart the development
+server. Set it in production as well; otherwise the application defaults to localhost.
+For a local production preview, set `API_BASE_URL=http://127.0.0.1:3000` before
+running `npm run build` and `npm run start`.
+
+The meeting data in `lib/meetings-db.ts` is sample data held in memory. Add or
+update records there as meeting dates change. The current meeting link uses the
+most recent Sunday in the ward's time zone and displays a message when no record
+exists for that date. Open a meeting and select **Print program** to print its
+agenda without the site navigation.
+
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
