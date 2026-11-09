@@ -22,3 +22,10 @@ body {
     color: var(--foreground);
     font-family: var(--font-geist-sans), Arial, sans-serif;
 }
+
+@media print {
+    body {
+        background: white;
+        color: black;
+    }
+}

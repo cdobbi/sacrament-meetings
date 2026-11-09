@@ -10,7 +10,7 @@ export default function MeetingsLayout({
         <div className="flex flex-1 flex-col">
             <nav
                 aria-label="Meetings navigation"
-                className="mx-auto w-full max-w-5xl px-6 pt-6"
+                className="mx-auto w-full max-w-5xl px-6 pt-6 print:hidden"
             >
                 <Link
                     href="/meetings"

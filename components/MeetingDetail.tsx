@@ -1,5 +1,6 @@
 import { formatMeetingDate } from "../lib/format-date";
 import type { SacramentMeeting } from "../lib/types";
+import PrintButton from "./PrintButton";
 
 type MeetingDetailProps = {
     meeting: SacramentMeeting;
@@ -7,10 +8,15 @@ type MeetingDetailProps = {
 
 export default function MeetingDetail({ meeting }: MeetingDetailProps) {
     return (
-        <article className="space-y-6 rounded-lg bg-surface p-6">
+        <article className="space-y-6 rounded-lg bg-surface p-6 print:bg-white print:p-0">
             <header>
+                <PrintButton />
                 <h1 className="text-3xl font-bold text-accent">
-                    Sacrament Meeting
+                    {meeting.meetingType === "stake"
+                        ? "Stake Conference"
+                        : meeting.meetingType === "general"
+                            ? "General Conference"
+                            : "Sacrament Meeting"}
                 </h1>
                 <p className="mt-2">
                     <time dateTime={meeting.date}>{formatMeetingDate(meeting.date)}</time>
@@ -63,13 +69,15 @@ export default function MeetingDetail({ meeting }: MeetingDetailProps) {
                 </p>
             </section>
 
-            <section>
-                <h2 className="text-xl font-semibold">Sacrament</h2>
-                <p>
-                    Sacrament hymn: #{meeting.sacramentHymn.number} —{" "}
-                    {meeting.sacramentHymn.title}
-                </p>
-            </section>
+            {meeting.meetingType !== "stake" && meeting.meetingType !== "general" && (
+                <section>
+                    <h2 className="text-xl font-semibold">Sacrament</h2>
+                    <p>
+                        Sacrament hymn: #{meeting.sacramentHymn.number} —{" "}
+                        {meeting.sacramentHymn.title}
+                    </p>
+                </section>
+            )}
 
             <section>
                 <h2 className="text-xl font-semibold">
