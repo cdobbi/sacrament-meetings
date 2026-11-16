@@ -9,7 +9,7 @@ const globalForDb = globalThis as unknown as { meetingsSql?: postgres.Sql };
 // Created lazily so builds and imports don't fail before env vars are available.
 function getSql(): postgres.Sql {
   if (!globalForDb.meetingsSql) {
-    const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+    const connectionString = process.env.DATABASE_URL;
     if (!connectionString) {
       throw new Error('DATABASE_URL is not set in .env.local.');
     }

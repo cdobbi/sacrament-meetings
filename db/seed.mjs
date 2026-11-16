@@ -2,7 +2,7 @@
 import { readFile } from 'node:fs/promises';
 import postgres from 'postgres';
 
-const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+const connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
   console.error('DATABASE_URL is not set in .env.local');
   process.exit(1);
