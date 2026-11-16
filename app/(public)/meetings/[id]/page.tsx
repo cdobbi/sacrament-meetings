@@ -1,8 +1,7 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import MeetingDetail from "../../../components/MeetingDetail";
-import { getApiUrl } from "../../../lib/api-url";
-import type { SacramentMeeting } from "../../../lib/types";
+import MeetingDetail from "@/components/MeetingDetail";
+import { getMeetingById } from "@/lib/meetings-db";
 
 type MeetingPageProps = {
     params: Promise<{ id: string }>;
@@ -21,20 +20,15 @@ export default function MeetingPage({ params }: MeetingPageProps) {
 async function MeetingAgenda({ params }: MeetingPageProps) {
     const { id } = await params;
 
-    const response = await fetch(
-        getApiUrl(`/api/meetings/${encodeURIComponent(id)}`),
-        { cache: "no-store" },
-    );
-
-    if (response.status === 400 || response.status === 404) {
+    if (!/^\d+$/.test(id)) {
         notFound();
     }
 
-    if (!response.ok) {
-        throw new Error(`Could not load meeting: ${response.status}`);
-    }
+    const meeting = await getMeetingById(Number(id));
 
-    const meeting: SacramentMeeting = await response.json();
+    if (!meeting) {
+        notFound();
+    }
 
     return <MeetingDetail meeting={meeting} />;
 }
