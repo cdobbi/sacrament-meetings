@@ -25,12 +25,14 @@ async function CurrentMeetingRedirect() {
     }
 
     return (
-        <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-8">
-            <h1 className="text-3xl font-bold">Current Meeting</h1>
-            <p className="mt-4">No meeting is available for this Sunday.</p>
-            <Link href="/meetings" className="mt-4 inline-block text-accent underline">
-                View all meetings
-            </Link>
+        <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 sm:px-6">
+            <div className="rounded-2xl bg-surface p-8 text-center ring-1 ring-accent/10">
+                <h1 className="text-2xl font-bold text-accent">This Sunday</h1>
+                <p className="mt-2">No meeting has been scheduled for this Sunday yet.</p>
+                <Link href="/meetings" className="mt-4 inline-block font-medium text-accent underline">
+                    View all meetings
+                </Link>
+            </div>
         </main>
     );
 }

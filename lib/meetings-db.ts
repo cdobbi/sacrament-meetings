@@ -11,7 +11,7 @@ function getSql(): postgres.Sql {
   if (!globalForDb.meetingsSql) {
     const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
     if (!connectionString) {
-      throw new Error('DATABASE_URL is not set. Add your Render External Database URL to .env.local.');
+      throw new Error('DATABASE_URL is not set in .env.local.');
     }
     globalForDb.meetingsSql = postgres(connectionString, {
       ssl: 'require',
@@ -61,7 +61,10 @@ export async function getMeetings(
       presiding       ILIKE ${searchTerm}
       OR conducting   ILIKE ${searchTerm}
       OR meeting_type ILIKE ${searchTerm}
-      OR speakers::text ILIKE ${searchTerm}
+      OR EXISTS (
+        SELECT 1 FROM jsonb_array_elements(speakers) AS s
+        WHERE s->>'name' ILIKE ${searchTerm}
+      )
     ORDER BY date DESC
     LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
   `;
@@ -79,7 +82,10 @@ export async function getMeetingsTotalPages(query: string = ''): Promise<number>
       presiding       ILIKE ${searchTerm}
       OR conducting   ILIKE ${searchTerm}
       OR meeting_type ILIKE ${searchTerm}
-      OR speakers::text ILIKE ${searchTerm}
+      OR EXISTS (
+        SELECT 1 FROM jsonb_array_elements(speakers) AS s
+        WHERE s->>'name' ILIKE ${searchTerm}
+      )
   `;
   return Math.ceil(Number(rows[0].count) / ITEMS_PER_PAGE);
 }
@@ -117,7 +123,7 @@ export async function getMeetingById(id: number): Promise<SacramentMeeting | nul
   return (rows[0] as unknown as SacramentMeeting | undefined) ?? null;
 }
 
-// Mutation stubs â€” will be wired to the database in Week 04
+// Mutation stubs Ã¢â‚¬â€ will be wired to the database in Week 04
 /* eslint-disable @typescript-eslint/no-unused-vars */
 export async function addMeeting(
   _data: Omit<SacramentMeeting, 'id'>,

@@ -5,17 +5,17 @@ import { usePathname, useSearchParams } from "next/navigation";
 
 type PaginationProps = {
     totalPages: number;
+    currentPage: number;
 };
 
 const linkClass =
-    "rounded-lg bg-accent px-4 py-2 font-semibold text-background transition-colors hover:bg-accent/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2";
+    "rounded-full px-4 py-1.5 text-sm font-medium text-accent ring-1 ring-accent/30 transition-colors hover:bg-accent hover:text-background focus:outline-none focus-visible:ring-2 focus-visible:ring-accent";
 
-export default function Pagination({ totalPages }: PaginationProps) {
+export default function Pagination({ totalPages, currentPage }: PaginationProps) {
     const pathname = usePathname();
     const searchParams = useSearchParams();
-    const currentPage = Number(searchParams.get("page")) || 1;
 
-    if (totalPages <= 0) {
+    if (totalPages <= 0 || currentPage > totalPages) {
         return null;
     }
 
@@ -28,18 +28,19 @@ export default function Pagination({ totalPages }: PaginationProps) {
     return (
         <nav
             aria-label="Pagination"
-            className="mt-8 flex items-center justify-between gap-4 print:hidden"
+            className="mt-6 flex items-center justify-between gap-4 print:hidden"
         >
             {currentPage > 1 ? (
                 <Link href={createPageURL(currentPage - 1)} className={linkClass}>
                     <span aria-hidden="true">←</span> Previous
                 </Link>
             ) : (
-                <span />
+                <span className="w-24" />
             )}
 
-            <span className="font-semibold">
-                Page {currentPage} of {totalPages}
+            <span className="text-sm text-foreground/80">
+                Page <span className="font-semibold text-foreground">{currentPage}</span> of{" "}
+                <span className="font-semibold text-foreground">{totalPages}</span>
             </span>
 
             {currentPage < totalPages ? (
@@ -47,7 +48,7 @@ export default function Pagination({ totalPages }: PaginationProps) {
                     Next <span aria-hidden="true">→</span>
                 </Link>
             ) : (
-                <span />
+                <span className="w-24" />
             )}
         </nav>
     );

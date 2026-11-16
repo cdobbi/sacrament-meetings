@@ -1,31 +1,14 @@
-import Link from "next/link";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
+import MeetingsTabs, { MeetingsTabsList } from "@/components/MeetingsTabs";
 
-export default function MeetingsLayout({
-    children,
-}: {
-    children: ReactNode;
-}) {
+export default function MeetingsLayout({ children }: { children: ReactNode }) {
     return (
         <div className="flex flex-1 flex-col">
-            <nav
-                aria-label="Meetings navigation"
-                className="mx-auto w-full max-w-5xl px-6 pt-6 print:hidden"
-            >
-                <Link
-                    href="/meetings"
-                    className="font-semibold text-accent hover:underline"
-                >
-                    All Meetings
-                </Link>
-                <Link
-                    href="/meetings/current"
-                    className="ml-4 font-semibold text-accent hover:underline"
-                >
-                    Current Meeting
-                </Link>
-            </nav>
-
+            <div className="mx-auto w-full max-w-3xl px-4 pt-5 sm:px-6 print:hidden">
+                <Suspense fallback={<MeetingsTabsList />}>
+                    <MeetingsTabs />
+                </Suspense>
+            </div>
             {children}
         </div>
     );
