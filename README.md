@@ -29,4 +29,37 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
+## Database (Render PostgreSQL)
+
+Meeting data is stored in a PostgreSQL database hosted on Render and accessed
+with the [`postgres`](https://github.com/porsager/postgres) package.
+
+1. Copy the **External Database URL** from the Render database's **Connect** panel.
+2. Add it to a root `.env.local` file (never commit this file):
+
+   ```
+   DATABASE_URL=postgresql://user:password@host.oregon-postgres.render.com/sacrament_meetings
+   ```
+
+3. Create the `meetings` table and load sample data:
+
+   ```bash
+   npm run db:seed
+   ```
+
+   The script runs `db/seed.sql`. Existing dates are skipped, so it is safe to
+   run more than once. The same SQL can also be run in pgAdmin or `psql`.
+
+When deploying, set `DATABASE_URL` in the host's environment settings. On a
+Render web service in the same region, the **Internal Database URL** can be used.
+
+The current meeting link uses the most recent Sunday in the ward's time zone and
+displays a message when no record exists for that date. Open a meeting and select
+**Print program** to print its agenda without the site navigation.
+
+
+## Acknowledgments
+
+Developed with assistance from GitHub Copilot (AI coding assistant).
+
 ## Deploy via URL from Render
