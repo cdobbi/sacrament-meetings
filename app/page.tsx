@@ -3,8 +3,8 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-background font-sans">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center gap-8 py-12 px-6 bg-surface sm:items-start sm:px-12">
+    <main className="flex flex-1 items-center justify-center bg-background px-4 py-10 sm:px-6 sm:py-14">
+      <section className="flex w-full max-w-3xl flex-col items-center gap-8 rounded-2xl border border-accent/15 bg-surface px-6 py-10 text-center shadow-sm sm:px-12">
         <Image
           className="h-auto w-full max-w-[378px] rounded-lg"
           src="/meetinghouse.webp"
@@ -13,7 +13,7 @@ export default function Home() {
           height={247}
           loading="eager"
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
+        <div className="flex flex-col items-center gap-4">
           <h1 className="text-3xl font-semibold leading-10 tracking-tight text-accent">
             Welcome to Mtn. View 2nd Ward
           </h1>
@@ -27,7 +27,7 @@ export default function Home() {
         >
           View Meetings
         </Link>
-      </main>
-    </div>
+      </section>
+    </main>
   );
 }

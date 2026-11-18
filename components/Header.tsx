@@ -1,4 +1,3 @@
-import { io } from "next/cache";
 import Link from "next/link";
 import NavLinks from "./NavLinks";
 import { WARD_TIME_ZONE } from "../lib/ward-date";
@@ -7,9 +6,7 @@ type HeaderProps = {
     wardName: string;
 };
 
-export default async function Header({ wardName }: HeaderProps) {
-    await io();
-
+export default function Header({ wardName }: HeaderProps) {
     const currentDate = new Date().toLocaleDateString("en-US", {
         weekday: "long",
         month: "long",
