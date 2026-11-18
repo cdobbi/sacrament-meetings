@@ -1,5 +1,6 @@
 import Link from "next/link";
-import NavLinks from "./NavLinks";
+import { Suspense } from "react";
+import NavLinks, { NavLinksList } from "./NavLinks";
 import HeaderDate from "./HeaderDate";
 
 type HeaderProps = {
@@ -12,9 +13,13 @@ export default function Header({ wardName }: HeaderProps) {
             <div className="mx-auto flex max-w-3xl items-center justify-between gap-2 px-4 py-3 sm:gap-4 sm:px-6">
                 <Link href="/" className="min-w-0 leading-tight">
                     <span className="block truncate text-sm font-bold text-accent sm:text-lg">{wardName}</span>
-                    <HeaderDate />
+                    <Suspense fallback={<span className="block text-xs text-foreground/80" />}>
+                        <HeaderDate />
+                    </Suspense>
                 </Link>
-                <NavLinks />
+                <Suspense fallback={<NavLinksList />}>
+                    <NavLinks />
+                </Suspense>
             </div>
         </header>
     );

@@ -13,19 +13,17 @@ function isPlannerPath(pathname: string) {
     return pathname === "/meetings/new" || pathname.endsWith("/edit");
 }
 
-export default function NavLinks() {
-    const pathname = usePathname();
-
+export function NavLinksList({ pathname }: { pathname?: string }) {
     return (
         <nav aria-label="Main navigation" className="flex shrink-0 gap-1 text-sm">
             {links.map((link) => {
                 const isActive =
-                    link.href === "/meetings/new"
+                    pathname !== undefined && (link.href === "/meetings/new"
                         ? isPlannerPath(pathname)
                         : pathname === link.href ||
                           (link.href !== "/" &&
                               pathname.startsWith(`${link.href}/`) &&
-                              !isPlannerPath(pathname));
+                              !isPlannerPath(pathname)));
 
                 return (
                     <Link
@@ -44,4 +42,9 @@ export default function NavLinks() {
             })}
         </nav>
     );
+}
+
+export default function NavLinks() {
+    const pathname = usePathname();
+    return <NavLinksList pathname={pathname} />;
 }
