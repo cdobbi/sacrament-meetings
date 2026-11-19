@@ -27,7 +27,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
         >
             <body className="min-h-full flex flex-col">
-                <Suspense fallback={<header className="bg-surface px-6 py-4">Loading header...</header>}>
+                <Suspense fallback={<header className="h-[61px] border-b border-accent/15 bg-surface" />}>
                     <Header wardName="Mtn. View 2nd Ward" />
                 </Suspense>
                 {children}

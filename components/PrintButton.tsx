@@ -5,7 +5,7 @@ export default function PrintButton() {
         <button
             type="button"
             onClick={() => window.print()}
-            className="mb-4 rounded bg-accent px-4 py-2 font-semibold text-background hover:bg-accent/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent print:hidden"
+            className="rounded-full px-4 py-1.5 text-sm font-medium text-accent ring-1 ring-accent/30 transition-colors hover:bg-accent hover:text-background focus:outline-none focus-visible:ring-2 focus-visible:ring-accent print:hidden"
         >
             Print program
         </button>

@@ -1,119 +1,143 @@
+import postgres from 'postgres';
 import type { SacramentMeeting } from './types';
 
-const meetings: SacramentMeeting[] = [
-  {
-    id: 1,
-    date: '2026-05-03',
-    meetingType: 'regular',
-    presiding: 'Bishop Smith',
-    conducting: 'Brother Jones',
-    openingHymn: { number: 2, title: 'The Spirit of God' },
-    openingPrayer: 'Sister Williams',
-    wardBusiness: [{ description: 'Sustaining of new Primary president' }],
-    stakeBusiness: false,
-    sacramentHymn: { number: 169, title: "In Remembrance of Thy Suffering" },
-    speakers: [
-      { name: 'Sister Brown', topic: 'Faith in Jesus Christ', type: 'speaker' },
-      { name: 'Youth Choir', topic: '', type: 'musical-number' }
-    ],
-    closingHymn: { number: 31, title: 'O God, Our Help in Ages Past' },
-    closingPrayer: 'Brother Davis',
-    announcements: ['Ward temple night: May 10']
-  },
-  {
-    id: 2,
-    date: '2026-10-04',
-    meetingType: 'general',
-    presiding: 'Stake Presidency',
-    conducting: 'Stake Presidency',
-    announcements: ['General conference broadcast'],
-    openingHymn: { number: 1, title: 'The Morning Breaks' },
-    openingPrayer: 'To be announced',
-    wardBusiness: [],
-    stakeBusiness: false,
-    sacramentHymn: { number: 193, title: 'I Stand All Amazed' },
-    speakers: [],
-    closingHymn: { number: 85, title: 'How Firm a Foundation' },
-    closingPrayer: 'To be announced'
-  },
-  {
-    id: 3,
-    date: '2026-10-18',
-    meetingType: 'stake',
-    presiding: 'Stake President',
-    conducting: 'Stake Presidency',
-    announcements: ['Stake conference'],
-    openingHymn: { number: 19, title: 'We Thank Thee, O God, for a Prophet' },
-    openingPrayer: 'Sister Taylor',
-    wardBusiness: [],
-    stakeBusiness: true,
-    sacramentHymn: { number: 185, title: 'Reverently and Meekly Now' },
-    speakers: [{ name: 'Stake Presidency', topic: 'Following Jesus Christ', type: 'speaker' }],
-    closingHymn: { number: 85, title: 'How Firm a Foundation' },
-    closingPrayer: 'Brother Martin'
-  },
-  {
-    id: 4,
-    date: '2026-10-25',
-    meetingType: 'regular',
-    presiding: 'Bishop Smith',
-    conducting: 'Brother Jones',
-    announcements: ['Ward service project next Saturday'],
-    openingHymn: { number: 3, title: 'Now Let Us Rejoice' },
-    openingPrayer: 'Sister Williams',
-    wardBusiness: [{ description: 'Sustaining of ward callings' }],
-    stakeBusiness: false,
-    sacramentHymn: { number: 185, title: 'Reverently and Meekly Now' },
-    speakers: [
-      { name: 'Sister Brown', topic: 'Serving one another', type: 'speaker' },
-      { name: 'Ward Choir', topic: 'A musical selection', type: 'musical-number' }
-    ],
-    closingHymn: { number: 98, title: 'I Need Thee Every Hour' },
-    closingPrayer: 'Brother Davis'
-  },
-  {
-    id: 5,
-    date: '2026-11-01',
-    meetingType: 'testimony',
-    presiding: 'Bishop Smith',
-    conducting: 'Brother Jones',
-    announcements: ['Ward temple night this month'],
-    openingHymn: { number: 2, title: 'The Spirit of God' },
-    openingPrayer: 'Sister Williams',
-    wardBusiness: [],
-    stakeBusiness: false,
-    sacramentHymn: { number: 169, title: 'As Now We Take the Sacrament' },
-    speakers: [{ name: 'Ward members', topic: 'Testimonies', type: 'speaker' }],
-    closingHymn: { number: 30, title: 'Come, Come, Ye Saints' },
-    closingPrayer: 'Brother Davis'
-  },
-  {
-    id: 6,
-    date: '2026-11-08',
-    meetingType: 'regular',
-    presiding: 'Bishop Smith',
-    conducting: 'Brother Jones',
-    announcements: ['Ward service project this month'],
-    openingHymn: { number: 6, title: 'Redeemer of Israel' },
-    openingPrayer: 'Sister Williams',
-    wardBusiness: [],
-    stakeBusiness: false,
-    sacramentHymn: { number: 185, title: 'Reverently and Meekly Now' },
-    speakers: [
-      { name: 'Sister Brown', topic: 'Faith in Jesus Christ', type: 'speaker' },
-      { name: 'Ward Choir', topic: 'A musical selection', type: 'musical-number' },
-      { name: 'Brother Davis', topic: 'Serving with love', type: 'speaker' }
-    ],
-    closingHymn: { number: 134, title: 'I Believe in Christ' },
-    closingPrayer: 'Sister Taylor'
-  }
-];
+export const ITEMS_PER_PAGE = 5;
 
-export function getMeetings(date?: string | null): SacramentMeeting[] {
-  if (date) return meetings.filter(m => m.date === date);
-  return [...meetings].sort((a, b) => b.date.localeCompare(a.date));
+// Reuse one pool across dev hot reloads so connections aren't leaked.
+const globalForDb = globalThis as unknown as { meetingsSql?: postgres.Sql };
+
+// Created lazily so builds and imports don't fail before env vars are available.
+function getSql(): postgres.Sql {
+  if (!globalForDb.meetingsSql) {
+    const connectionString = process.env.DATABASE_URL;
+    if (!connectionString) {
+      throw new Error('DATABASE_URL is not set in .env.local.');
+    }
+    globalForDb.meetingsSql = postgres(connectionString, {
+      ssl: 'require',
+      max: 5,
+      idle_timeout: 20,
+    });
+  }
+  return globalForDb.meetingsSql;
 }
 
-export function getMeetingById(id: number): SacramentMeeting | null {
-  return meetings.find(m => m.id === id) ?? null;
+const meetingColumns = (sql: postgres.Sql) => sql`
+  id,
+  to_char(date, 'YYYY-MM-DD') AS "date",
+  meeting_type                AS "meetingType",
+  presiding, conducting, announcements,
+  opening_hymn                AS "openingHymn",
+  opening_prayer              AS "openingPrayer",
+  ward_business               AS "wardBusiness",
+  stake_business              AS "stakeBusiness",
+  sacrament_hymn              AS "sacramentHymn",
+  speakers,
+  closing_hymn                AS "closingHymn",
+  closing_prayer              AS "closingPrayer"
+`;
+
+function toSearchPattern(query: string): string {
+  const escaped = query.trim().replace(/[\\%_]/g, (char) => `\\${char}`);
+  return `%${escaped}%`;
+}
+
+function toPageNumber(page: number): number {
+  return Number.isSafeInteger(page) && page > 0 ? page : 1;
+}
+
+export async function getMeetings(
+  query: string = '',
+  currentPage: number = 1,
+): Promise<SacramentMeeting[]> {
+  const sql = getSql();
+  const searchTerm = toSearchPattern(query);
+  const offset = (toPageNumber(currentPage) - 1) * ITEMS_PER_PAGE;
+
+  const rows = await sql`
+    SELECT ${meetingColumns(sql)}
+    FROM meetings
+    WHERE
+      presiding       ILIKE ${searchTerm}
+      OR conducting   ILIKE ${searchTerm}
+      OR meeting_type ILIKE ${searchTerm}
+      OR EXISTS (
+        SELECT 1 FROM jsonb_array_elements(speakers) AS s
+        WHERE s->>'name' ILIKE ${searchTerm}
+      )
+    ORDER BY date DESC
+    LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
+  `;
+  return rows as unknown as SacramentMeeting[];
+}
+
+export async function getMeetingsTotalPages(query: string = ''): Promise<number> {
+  const sql = getSql();
+  const searchTerm = toSearchPattern(query);
+
+  const rows = await sql`
+    SELECT COUNT(*) AS count
+    FROM meetings
+    WHERE
+      presiding       ILIKE ${searchTerm}
+      OR conducting   ILIKE ${searchTerm}
+      OR meeting_type ILIKE ${searchTerm}
+      OR EXISTS (
+        SELECT 1 FROM jsonb_array_elements(speakers) AS s
+        WHERE s->>'name' ILIKE ${searchTerm}
+      )
+  `;
+  return Math.ceil(Number(rows[0].count) / ITEMS_PER_PAGE);
+}
+
+export async function getAllMeetings(): Promise<SacramentMeeting[]> {
+  const sql = getSql();
+  const rows = await sql`
+    SELECT ${meetingColumns(sql)}
+    FROM meetings
+    ORDER BY date DESC
+  `;
+  return rows as unknown as SacramentMeeting[];
+}
+
+export async function getMeetingByDate(date: string): Promise<SacramentMeeting | null> {
+  const sql = getSql();
+  const rows = await sql`
+    SELECT ${meetingColumns(sql)}
+    FROM meetings
+    WHERE date = ${date}::date
+  `;
+  return (rows[0] as unknown as SacramentMeeting | undefined) ?? null;
+}
+
+export async function getMeetingById(id: number): Promise<SacramentMeeting | null> {
+  // SERIAL ids are 32-bit; larger values can't exist and would error in Postgres.
+  if (!Number.isSafeInteger(id) || id < 1 || id > 2_147_483_647) return null;
+
+  const sql = getSql();
+  const rows = await sql`
+    SELECT ${meetingColumns(sql)}
+    FROM meetings
+    WHERE id = ${id}
+  `;
+  return (rows[0] as unknown as SacramentMeeting | undefined) ?? null;
+}
+
+// Mutation stubs Ã¢â‚¬â€ will be wired to the database in Week 04
+/* eslint-disable @typescript-eslint/no-unused-vars */
+export async function addMeeting(
+  _data: Omit<SacramentMeeting, 'id'>,
+): Promise<SacramentMeeting> {
+  throw new Error('addMeeting: database implementation coming in Week 04');
+}
+
+export async function updateMeeting(
+  _id: number,
+  _updates: Partial<SacramentMeeting>,
+): Promise<SacramentMeeting | null> {
+  throw new Error('updateMeeting: database implementation coming in Week 04');
+}
+
+export async function deleteMeeting(_id: number): Promise<boolean> {
+  throw new Error('deleteMeeting: database implementation coming in Week 04');
 }
