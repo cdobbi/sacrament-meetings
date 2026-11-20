@@ -2,6 +2,7 @@ import Link from "next/link";
 import { formatMeetingDate } from "../lib/format-date";
 import type { SacramentMeeting } from "../lib/types";
 import MeetingTypeBadge from "./MeetingTypeBadge";
+import { deleteMeeting } from "@/lib/actions";
 
 type MeetingCardProps = {
   meeting: SacramentMeeting;
@@ -35,7 +36,7 @@ export default function MeetingCard({ meeting }: MeetingCardProps) {
           <h2 className="font-semibold">
             <Link
               href={`/meetings/${meeting.id}`}
-              className="text-foreground after:absolute after:inset-0 after:rounded-xl focus:outline-none"
+              className="text-foreground underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             >
               <time dateTime={meeting.date}>{formatMeetingDate(meeting.date)}</time>
             </Link>
@@ -50,12 +51,14 @@ export default function MeetingCard({ meeting }: MeetingCardProps) {
         </p>
       </div>
 
-      <span
-        className="text-xl text-accent transition-transform group-hover:translate-x-1"
-        aria-hidden="true"
-      >
-        ›
-      </span>
+      <div className="flex flex-col items-end gap-2 text-sm">
+        <Link href={`/meetings/${meeting.id}/edit`} className="font-semibold text-accent underline"
+          aria-label={`Edit meeting on ${formatMeetingDate(meeting.date)}`}>Edit</Link>
+        <form action={deleteMeeting.bind(null, meeting.id)}>
+          <button type="submit" className="font-semibold text-red-700 underline"
+            aria-label={`Delete meeting on ${formatMeetingDate(meeting.date)}`}>Delete</button>
+        </form>
+      </div>
     </article>
   );
 }

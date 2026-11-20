@@ -57,6 +57,11 @@ The current meeting link uses the most recent Sunday in the ward's time zone and
 displays a message when no record exists for that date. Open a meeting and select
 **Print program** to print its agenda without the site navigation.
 
+Use **Planner** to create a meeting, or the **Edit** and **Delete** controls on
+the meetings list to change existing records. Meeting dates must be unique.
+These controls are not authenticated yet: anyone who can access the app can
+change or delete meeting records. Authentication is planned for Week 05.
+
 
 ## Acknowledgments
 

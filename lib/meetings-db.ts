@@ -123,21 +123,55 @@ export async function getMeetingById(id: number): Promise<SacramentMeeting | nul
   return (rows[0] as unknown as SacramentMeeting | undefined) ?? null;
 }
 
-// Mutation stubs Ã¢â‚¬â€ will be wired to the database in Week 04
-/* eslint-disable @typescript-eslint/no-unused-vars */
 export async function addMeeting(
-  _data: Omit<SacramentMeeting, 'id'>,
+  data: Omit<SacramentMeeting, 'id'>,
 ): Promise<SacramentMeeting> {
-  throw new Error('addMeeting: database implementation coming in Week 04');
+  const sql = getSql();
+  const rows = await sql`
+    INSERT INTO meetings (
+      date, meeting_type, presiding, conducting, announcements, opening_hymn,
+      opening_prayer, ward_business, stake_business, sacrament_hymn,
+      speakers, closing_hymn, closing_prayer
+    ) VALUES (
+      ${data.date}::date, ${data.meetingType}, ${data.presiding}, ${data.conducting},
+      ${data.announcements ?? []}::text[],
+      ${sql.json({ ...data.openingHymn })}, ${data.openingPrayer},
+      ${sql.json(data.wardBusiness.map((item) => ({ ...item })))}, ${data.stakeBusiness},
+      ${sql.json({ ...data.sacramentHymn })},
+      ${sql.json(data.speakers.map((item) => ({ ...item })))},
+      ${sql.json({ ...data.closingHymn })}, ${data.closingPrayer}
+    )
+    RETURNING ${meetingColumns(sql)}
+  `;
+  return rows[0] as unknown as SacramentMeeting;
 }
 
 export async function updateMeeting(
-  _id: number,
-  _updates: Partial<SacramentMeeting>,
+  id: number,
+  data: Omit<SacramentMeeting, 'id'>,
 ): Promise<SacramentMeeting | null> {
-  throw new Error('updateMeeting: database implementation coming in Week 04');
+  const sql = getSql();
+  const rows = await sql`
+    UPDATE meetings SET
+      date = ${data.date}::date, meeting_type = ${data.meetingType},
+      presiding = ${data.presiding}, conducting = ${data.conducting},
+      announcements = ${data.announcements ?? []}::text[],
+      opening_hymn = ${sql.json({ ...data.openingHymn })},
+      opening_prayer = ${data.openingPrayer},
+      ward_business = ${sql.json(data.wardBusiness.map((item) => ({ ...item })))},
+      stake_business = ${data.stakeBusiness},
+      sacrament_hymn = ${sql.json({ ...data.sacramentHymn })},
+      speakers = ${sql.json(data.speakers.map((item) => ({ ...item })))},
+      closing_hymn = ${sql.json({ ...data.closingHymn })},
+      closing_prayer = ${data.closingPrayer}
+    WHERE id = ${id}
+    RETURNING ${meetingColumns(sql)}
+  `;
+  return (rows[0] as unknown as SacramentMeeting | undefined) ?? null;
 }
 
-export async function deleteMeeting(_id: number): Promise<boolean> {
-  throw new Error('deleteMeeting: database implementation coming in Week 04');
+export async function deleteMeeting(id: number): Promise<boolean> {
+  const sql = getSql();
+  const rows = await sql`DELETE FROM meetings WHERE id = ${id} RETURNING id`;
+  return rows.length > 0;
 }

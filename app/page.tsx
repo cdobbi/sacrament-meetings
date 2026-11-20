@@ -12,6 +12,7 @@ export default function Home() {
           width={378}
           height={247}
           loading="eager"
+          fetchPriority="high"
         />
         <div className="flex flex-col items-center gap-4">
           <h1 className="text-3xl font-semibold leading-10 tracking-tight text-accent">

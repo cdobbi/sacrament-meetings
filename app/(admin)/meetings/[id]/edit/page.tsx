@@ -1,11 +1,19 @@
-export default function EditMeetingPage() {
+import { notFound } from "next/navigation";
+import MeetingForm from "@/components/MeetingForm";
+import { getMeetingById } from "@/lib/meetings-db";
+
+export const instant = false;
+
+export default async function EditMeetingPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
+    if (!/^\d+$/.test(id)) notFound();
+    const meeting = await getMeetingById(Number(id));
+    if (!meeting) notFound();
+
     return (
-        <div className="rounded-2xl bg-surface p-8 text-center shadow-sm ring-1 ring-accent/10">
-            <p className="text-xs font-bold uppercase tracking-widest text-accent">Meeting Planner</p>
-            <h1 className="mt-2 text-2xl font-bold text-accent">Edit Meeting — Coming in Week 04</h1>
-            <p className="mx-auto mt-3 max-w-md text-foreground/80">
-                Update a meeting&apos;s hymns, prayers, speakers, and announcements.
-            </p>
-        </div>
+        <>
+            <h1 className="mb-4 text-2xl font-bold text-accent">Edit Meeting</h1>
+            <MeetingForm meeting={meeting} />
+        </>
     );
 }
