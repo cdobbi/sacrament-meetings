@@ -6,6 +6,7 @@ import { deleteMeeting } from "@/lib/actions";
 
 type MeetingCardProps = {
   meeting: SacramentMeeting;
+  canManage: boolean;
 };
 
 function dateParts(date: string) {
@@ -15,7 +16,7 @@ function dateParts(date: string) {
   return { month: part({ month: "short" }), day: part({ day: "numeric" }) };
 }
 
-export default function MeetingCard({ meeting }: MeetingCardProps) {
+export default function MeetingCard({ meeting, canManage }: MeetingCardProps) {
   const { month, day } = dateParts(meeting.date);
   const speakers = meeting.speakers
     .filter((item) => item.type === "speaker")
@@ -51,14 +52,16 @@ export default function MeetingCard({ meeting }: MeetingCardProps) {
         </p>
       </div>
 
-      <div className="flex flex-col items-end gap-2 text-sm">
-        <Link href={`/meetings/${meeting.id}/edit`} className="font-semibold text-accent underline"
-          aria-label={`Edit meeting on ${formatMeetingDate(meeting.date)}`}>Edit</Link>
-        <form action={deleteMeeting.bind(null, meeting.id)}>
-          <button type="submit" className="font-semibold text-red-700 underline"
-            aria-label={`Delete meeting on ${formatMeetingDate(meeting.date)}`}>Delete</button>
-        </form>
-      </div>
+      {canManage && (
+        <div className="flex flex-col items-end gap-2 text-sm">
+          <Link href={`/meetings/${meeting.id}/edit`} className="font-semibold text-accent underline"
+            aria-label={`Edit meeting on ${formatMeetingDate(meeting.date)}`}>Edit</Link>
+          <form action={deleteMeeting.bind(null, meeting.id)}>
+            <button type="submit" className="font-semibold text-red-700 underline"
+              aria-label={`Delete meeting on ${formatMeetingDate(meeting.date)}`}>Delete</button>
+          </form>
+        </div>
+      )}
     </article>
   );
 }

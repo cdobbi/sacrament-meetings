@@ -1,8 +1,10 @@
 'use server';
 
 import { z } from 'zod';
+import { AuthError } from 'next-auth';
 import { revalidatePath } from 'next/cache';
 import { notFound, redirect } from 'next/navigation';
+import { auth, signIn } from '@/auth';
 import { addMeeting, updateMeeting as updateMeetingRecord, deleteMeeting as deleteMeetingRecord } from './meetings-db';
 import type { SacramentMeeting } from './types';
 
@@ -102,7 +104,31 @@ function validId(id: number): boolean {
   return Number.isSafeInteger(id) && id > 0 && id <= 2_147_483_647;
 }
 
+async function requireOwnerSession(): Promise<void> {
+  const session = await auth();
+  if (!session?.user) {
+    throw new Error('Not authenticated.');
+  }
+}
+
+export async function authenticate(
+  _previousState: string | undefined,
+  formData: FormData,
+): Promise<string | undefined> {
+  try {
+    await signIn('credentials', formData);
+  } catch (error) {
+    if (error instanceof AuthError) {
+      return error.type === 'CredentialsSignin'
+        ? 'Invalid email or password.'
+        : 'Unable to sign in. Please try again.';
+    }
+    throw error;
+  }
+}
+
 export async function createMeeting(_prevState: State, formData: FormData): Promise<State> {
+  await requireOwnerSession();
   const result = parseMeeting(formData);
   if (!result.success) return validationState(result.error);
 
@@ -121,6 +147,7 @@ export async function createMeeting(_prevState: State, formData: FormData): Prom
 }
 
 export async function updateMeeting(id: number, _prevState: State, formData: FormData): Promise<State> {
+  await requireOwnerSession();
   if (!validId(id)) notFound();
   const result = parseMeeting(formData);
   if (!result.success) return validationState(result.error);
@@ -143,6 +170,7 @@ export async function updateMeeting(id: number, _prevState: State, formData: For
 }
 
 export async function deleteMeeting(id: number): Promise<void> {
+  await requireOwnerSession();
   if (!validId(id)) notFound();
   let deleted: boolean;
   try {

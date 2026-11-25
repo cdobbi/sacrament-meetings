@@ -57,10 +57,30 @@ The current meeting link uses the most recent Sunday in the ward's time zone and
 displays a message when no record exists for that date. Open a meeting and select
 **Print program** to print its agenda without the site navigation.
 
-Use **Planner** to create a meeting, or the **Edit** and **Delete** controls on
-the meetings list to change existing records. Meeting dates must be unique.
-These controls are not authenticated yet: anyone who can access the app can
-change or delete meeting records. Authentication is planned for Week 05.
+## Authentication
+
+The meeting planner uses Auth.js Credentials with one owner account. Add the
+following values to `.env.local`:
+
+```text
+AUTH_SECRET=<generated secret>
+AUTH_OWNER_EMAIL=<owner email>
+AUTH_OWNER_PASSWORD_HASH=<bcrypt password hash>
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+```
+
+Keep the real password out of the repository and environment files; store only
+its bcrypt hash. Generate `AUTH_SECRET` with `npx auth secret`.
+
+The public meeting schedules remain available without signing in.
+`/meetings/new` and `/meetings/:id/edit` redirect unauthenticated visitors to
+`/login`. Signed-in owners can use the Planner navigation to create meetings,
+Edit/Delete controls to manage meetings, and Sign Out from the planner layout.
+Create, update, and delete Server Actions independently verify the session
+before changing the database.
+
+Set `NEXT_PUBLIC_SITE_URL` to the deployed site origin so Open Graph image URLs
+use the production hostname.
 
 
 ## Acknowledgments

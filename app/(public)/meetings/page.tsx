@@ -3,8 +3,16 @@ import Link from "next/link";
 import MeetingCard from "@/components/MeetingCard";
 import MeetingSearch, { MeetingSearchFallback } from "@/components/MeetingSearch";
 import Pagination from "@/components/Pagination";
+import { auth } from "@/auth";
 import { getMeetings, getMeetingsTotalPages } from "@/lib/meetings-db";
 import { MeetingListSkeleton } from "./loading";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+    title: "Sacrament Meetings",
+    description:
+        "Browse Mtn. View 2nd Ward sacrament meeting schedules and agendas.",
+};
 
 type SearchParams = Promise<{ query?: string | string[]; page?: string | string[] }>;
 
@@ -35,9 +43,10 @@ async function MeetingsResults({ searchParams }: { searchParams: SearchParams })
     const currentPage =
         Number.isSafeInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
 
-    const [meetings, totalPages] = await Promise.all([
+    const [meetings, totalPages, session] = await Promise.all([
         getMeetings(query, currentPage),
         getMeetingsTotalPages(query),
+        auth(),
     ]);
 
     return (
@@ -58,7 +67,11 @@ async function MeetingsResults({ searchParams }: { searchParams: SearchParams })
             ) : (
                 <div className="space-y-3">
                     {meetings.map((meeting) => (
-                        <MeetingCard key={meeting.id} meeting={meeting} />
+                        <MeetingCard
+                            key={meeting.id}
+                            meeting={meeting}
+                            canManage={Boolean(session?.user)}
+                        />
                     ))}
                 </div>
             )}

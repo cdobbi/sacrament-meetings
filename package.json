@@ -10,7 +10,9 @@
     "db:seed": "node --env-file=.env.local db/seed.mjs"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "next": "16.4.5",
+    "next-auth": "^5.0.0-beta.32",
     "postgres": "^4.1.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",

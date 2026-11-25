@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import SignOutButton from "@/components/SignOutButton";
 
-// Authentication will be added here in Week 05.
 export default function AdminLayout({ children }: { children: ReactNode }) {
     return (
         <div className="flex flex-1 flex-col">
@@ -17,6 +17,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                     <Link href="/meetings" className="font-semibold underline-offset-4 hover:underline">
                         Back to Meetings
                     </Link>
+                    <div className="ml-auto">
+                        <SignOutButton />
+                    </div>
                 </nav>
             </div>
 
