@@ -1,13 +1,9 @@
 import bcrypt from "bcryptjs";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { z } from "zod";
 import { authConfig } from "./auth.config";
-
-const credentialsSchema = z.object({
-    email: z.email(),
-    password: z.string().min(8),
-});
+import { credentialsSchema } from "./lib/credentials";
+import { getUserByEmail } from "./lib/users-db";
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
     ...authConfig,
@@ -17,29 +13,18 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                 const parsed = credentialsSchema.safeParse(credentials);
                 if (!parsed.success) return null;
 
-                const ownerEmail = process.env.AUTH_OWNER_EMAIL;
-                const ownerPasswordHash = process.env.AUTH_OWNER_PASSWORD_HASH;
-
-                if (!ownerEmail || !ownerPasswordHash) {
-                    throw new Error(
-                        "AUTH_OWNER_EMAIL and AUTH_OWNER_PASSWORD_HASH must be configured.",
-                    );
-                }
-
-                const emailMatches =
-                    parsed.data.email.trim().toLowerCase() ===
-                    ownerEmail.trim().toLowerCase();
+                const user = await getUserByEmail(parsed.data.email);
+                if (!user) return null;
                 const passwordMatches = await bcrypt.compare(
                     parsed.data.password,
-                    ownerPasswordHash,
+                    user.passwordHash,
                 );
 
-                if (!emailMatches || !passwordMatches) return null;
+                if (!passwordMatches) return null;
 
                 return {
-                    id: "owner",
-                    email: ownerEmail,
-                    name: "Meeting Planner",
+                    id: String(user.id),
+                    email: user.email,
                 };
             },
         }),

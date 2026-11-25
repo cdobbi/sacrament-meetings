@@ -1,10 +1,13 @@
 'use server';
 
 import { z } from 'zod';
+import bcrypt from 'bcryptjs';
 import { AuthError } from 'next-auth';
 import { revalidatePath } from 'next/cache';
 import { notFound, redirect } from 'next/navigation';
 import { auth, signIn } from '@/auth';
+import { credentialsSchema } from './credentials';
+import { createUser } from './users-db';
 import { addMeeting, updateMeeting as updateMeetingRecord, deleteMeeting as deleteMeetingRecord } from './meetings-db';
 import type { SacramentMeeting } from './types';
 
@@ -104,10 +107,44 @@ function validId(id: number): boolean {
   return Number.isSafeInteger(id) && id > 0 && id <= 2_147_483_647;
 }
 
-async function requireOwnerSession(): Promise<void> {
+async function requireSession(): Promise<void> {
   const session = await auth();
   if (!session?.user) {
     throw new Error('Not authenticated.');
+  }
+}
+
+export async function register(
+  _previousState: string | undefined,
+  formData: FormData,
+): Promise<string | undefined> {
+  const parsed = credentialsSchema.safeParse({
+    email: formData.get('email'),
+    password: formData.get('password'),
+  });
+  if (!parsed.success) {
+    return 'Enter a valid email and a password of at least 8 characters and at most 72 bytes.';
+  }
+  if (parsed.data.password !== formData.get('confirmPassword')) {
+    return 'Passwords do not match.';
+  }
+
+  const passwordHash = await bcrypt.hash(parsed.data.password, 12);
+  const created = await createUser(parsed.data.email, passwordHash);
+  if (!created) return 'An account with this email already exists. Please sign in.';
+
+  try {
+    await signIn('credentials', {
+      email: parsed.data.email,
+      password: parsed.data.password,
+      redirectTo: '/meetings/new',
+    });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      console.error('Account created, but automatic sign-in failed:', error);
+      return 'Account created, but sign-in failed. Please sign in.';
+    }
+    throw error;
   }
 }
 
@@ -128,7 +165,7 @@ export async function authenticate(
 }
 
 export async function createMeeting(_prevState: State, formData: FormData): Promise<State> {
-  await requireOwnerSession();
+  await requireSession();
   const result = parseMeeting(formData);
   if (!result.success) return validationState(result.error);
 
@@ -147,7 +184,7 @@ export async function createMeeting(_prevState: State, formData: FormData): Prom
 }
 
 export async function updateMeeting(id: number, _prevState: State, formData: FormData): Promise<State> {
-  await requireOwnerSession();
+  await requireSession();
   if (!validId(id)) notFound();
   const result = parseMeeting(formData);
   if (!result.success) return validationState(result.error);
@@ -170,7 +207,7 @@ export async function updateMeeting(id: number, _prevState: State, formData: For
 }
 
 export async function deleteMeeting(id: number): Promise<void> {
-  await requireOwnerSession();
+  await requireSession();
   if (!validId(id)) notFound();
   let deleted: boolean;
   try {

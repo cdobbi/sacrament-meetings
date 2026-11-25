@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS planner_users (
+  id SERIAL PRIMARY KEY,
+  email VARCHAR(254) NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL
+);

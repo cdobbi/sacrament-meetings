@@ -59,22 +59,24 @@ displays a message when no record exists for that date. Open a meeting and selec
 
 ## Authentication
 
-The meeting planner uses Auth.js Credentials with one owner account. Add the
-following values to `.env.local`:
+The meeting planner uses Auth.js Credentials and stores account email addresses
+and bcrypt password hashes in Render PostgreSQL. Create the account table with
+`npm run db:init-auth` (this does not seed meeting data). Add the following
+values to `.env.local`:
 
 ```text
 AUTH_SECRET=<generated secret>
-AUTH_OWNER_EMAIL=<owner email>
-AUTH_OWNER_PASSWORD_HASH=<bcrypt password hash>
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
-Keep the real password out of the repository and environment files; store only
-its bcrypt hash. Generate `AUTH_SECRET` with `npx auth secret`.
+Keep passwords and `AUTH_SECRET` out of the repository. Generate a unique
+`AUTH_SECRET` for each deployment, and set it in the host's environment.
 
-The public meeting schedules remain available without signing in.
+Anyone can create an account from the sign-in page, and every signed-in account
+can create, edit, and delete meetings. The public meeting schedules remain
+available without signing in.
 `/meetings/new` and `/meetings/:id/edit` redirect unauthenticated visitors to
-`/login`. Signed-in owners can use the Planner navigation to create meetings,
+`/login`. Signed-in users can use the Planner navigation to create meetings,
 Edit/Delete controls to manage meetings, and Sign Out from the planner layout.
 Create, update, and delete Server Actions independently verify the session
 before changing the database.

@@ -1,26 +1,8 @@
-import postgres from 'postgres';
+import type postgres from 'postgres';
+import { getSql } from './db';
 import type { SacramentMeeting } from './types';
 
 export const ITEMS_PER_PAGE = 5;
-
-// Reuse one pool across dev hot reloads so connections aren't leaked.
-const globalForDb = globalThis as unknown as { meetingsSql?: postgres.Sql };
-
-// Created lazily so builds and imports don't fail before env vars are available.
-function getSql(): postgres.Sql {
-  if (!globalForDb.meetingsSql) {
-    const connectionString = process.env.DATABASE_URL;
-    if (!connectionString) {
-      throw new Error('DATABASE_URL is not set in .env.local.');
-    }
-    globalForDb.meetingsSql = postgres(connectionString, {
-      ssl: 'require',
-      max: 5,
-      idle_timeout: 20,
-    });
-  }
-  return globalForDb.meetingsSql;
-}
 
 const meetingColumns = (sql: postgres.Sql) => sql`
   id,
